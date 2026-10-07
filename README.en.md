@@ -10,6 +10,8 @@ Radio the way it was meant to work: power on, pick a station, hear it. No accoun
 - **Memory:** LVGL pool 112 KB, 8 MB PSRAM
 
 > 中文版 / Chinese version: [README.md](README.md) · 烧录步骤 / Flashing: [FLASHING.md](FLASHING.md)
+>
+> ⚠️ **This manual covers the Chinese-interface firmware.** If you want the **English-interface** firmware, it lives in a separate repository: **[xiandial-radio-en](https://github.com/podcatcher962/xiandial-radio-en)** — same engine, same station-list format, English UI, also zero built-in stations.
 
 ---
 
