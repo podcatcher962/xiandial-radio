@@ -375,11 +375,253 @@ TOAST = {
 
     # ---- SD 卡
     "未检测到内存卡": "No SD card",
+
+    # ═══ 第二轮补：闸门按「是否进 lv_label_set_text」筛出来的漏网 ═══
+    #   这批是逐个核对untranslated 清单后确认【真的要上屏】的。
+    #   判据：字符串出现在 label()/lv_label_set_text*() 的实参里。
+    "导航": "Menu",
+    "空闲": "Idle",
+    "网络": "Net",
+    "本地播放": "Playing locally",
+    "本地音频 · 内存卡": "Local audio - SD card",
+    "内存卡音频 →": "SD audio >",
+    "内存卡音频→": "SD audio >",
+    "提示音": "Chime",
+    "看起来该叫什么": "What should it be called?",
+    "台单已变": "Station list changed",
+    "播放中 · %s": "Playing - %s",
+    # ★ 源码里这条是【写死的示例台名】（不是格式串），
+    #   看着像 %s 版本所以我没建表 ⇒ 一直漏译。
+    #   ⇒ 它是示例数据，译文保留一个中文台名反而更真实，
+    #     但既然英文版就统一译掉。
+    "播放中 · 中国之声": "Playing - China Radio",
+    "list: 第 6 页网格还没建 —— 先建再填台": "list: grid not built yet",
+    "网络电台 / 本地音频\\n首页或「城市声音集」":
+        "Internet radio / Local audio\\nHome or SD audio",
+    "%d 首 →": "%d items >",
+    "10 月 3 日 · 星期六": "Oct 3 - Saturday",
+    "ES8311 %s · 音量 %d%%": "ES8311 %s - vol %d%%",
+    "\\2606 收藏": "\\2606 Fav",
+    "已发起连接…": "Connection started...",
+    "连上了 %s · %s": "Connected to %s - %s",
+
+    # ---- 配网页/ wifi.txt 相关的上屏提示
+    "内存卡根目录没有 wifi.txt": "No wifi.txt in the SD card root",
+    "wifi.txt 第一行是空的": "First line of wifi.txt is empty",
+
+    # ★★ 下面这些是【串口日志】（ESP_LOG* / printf），使用者看不到，
+    #   保留中文即可 —— 工程师排障时读中文反而更快。
+    #   为了让闸门能自动区分，我把它们登记到 LOG_ONLY，
+    #   生成器见到就跳过并记账（而不是报「未翻译」）。
 }
+
+# ═════════════════════════════════════════════ ⑦ 之补：播放错误码（ERRSET）
+#★★★ 为什么单独一张表，而不是并进 TOAST ★★★
+#  这些串全部写进 s_err：
+#      snprintf(s_err, sizeof(s_err), "内存不足");
+#  而 s_err 最终被 app_radio_last_error() 返回，在 player_refresh() 里
+#      lv_label_set_text(s_np_state, (err && err[0]) ? err : "空闲");
+#  ⇒ 它【上屏】。但它长得极像日志：一行 snprintf、周围全是 ESP_LOG。
+#  我第一版按「进 snprintf 就算日志」判，于是这 20 多条全部留在中文版，
+#  而英文固件用户看到的是状态栏一行「内存不足」——这正是
+#  「判据写错时的表现和『事情没做』完全一样」那条铁律的又一次复现。
+#  ⇒ 判据必须是【这个缓冲区最终给不给 UI 看】，不是「用了哪个 API」。
+#
+#  长度预算：状态栏那行是 s_np_state，容器 152 px；12px 英文约 6px/字符
+#  ⇒ ≤ 24 字符。上表全部满足。
+ERRSET = {
+    #★★★ 10-07 补：app_hls.c 的 hls_set_err() 文案 ★★★
+    #  同一个教训的【第二次复发】。上面刚写过「判据必须是这个缓冲区最终给不给
+    #  UI 看，不是用了哪个 API」，我把 snprintf(s_err,…) 补进了判据，
+    #  却漏了它的孪生兄弟：
+    #      app_hls.c: hls_set_err(h, "HLS: 连不上播放列表")
+    #   流向：hls_set_err → hls_error() → app_radio.c 的 s_err
+    #         → app_radio_last_error() → ui 的 player_refresh()
+    #         → lv_label_set_text(s_np_state, err)      ← 上屏
+    #  这 10 条因此一路绿灯留在英文固件里，而闸门 g4 用的正是那个判据。
+    #  ⇒ 补判据时要【顺着缓冲区再走一步】：凡是"别人把文案交给某个 helper"
+    #    的地方，都要问一句 helper 的产物去哪了。
+    #  长度预算：s_np_state 宽 140 px、12px 英文约 6px/字符 ⇒ ≤ 24 字符，
+    #            且超长会被 LV_LABEL_LONG_DOT 截成省略号（截了就看不出原因）。
+    "HLS: 句柄建不了": "HLS: handle failed",
+    "HLS: 连不上播放列表": "HLS: cannot open list",
+    "HLS: 播放列表无响应": "HLS: list no response",
+    "HLS: 列表返回错误状态": "HLS: list bad status",
+    "HLS: 分片缓冲分配失败": "HLS: buffer failed",
+    "HLS: 分片连接建不了": "HLS: segment failed",
+    "HLS: 内存不足": "HLS: out of memory",
+    "HLS: 列表里没有分片": "HLS: no segments",
+    "HLS: 重拉列表没分片": "HLS: no new segments",
+    "HLS: 连续 8 片都拉不下来，源不可用": "HLS: source unusable",
+
+    "内存不足": "Out of memory",
+    "打不开文件": "Cannot open file",
+    "连不上这个电台": "Cannot reach station",
+    "电台没回数据": "No data from station",
+    "网络断了，重连失败": "Network lost, retry failed",
+    "WiFi 没连上": "WiFi not connected",
+    "HLS 拉不到切片": "HLS: no segments",
+    "音频未就绪": "Audio not ready",
+    "上一个还在收尾": "Previous still stopping",
+    "任务创建失败": "Task create failed",
+    "认不出音频格式": "Unknown audio format",
+    "解码器不支持 %s": "Decoder unsupported: %s",
+    "解码器打开失败(%d)": "Decoder open failed (%d)",
+    "解不出音频数据": "Cannot decode audio",
+    "跳转失败": "Seek failed",
+    "这一目录没有别的音频": "No other audio in this folder",
+    "stream: 电台已开播，开始解码": "stream: station started, decoding",
+    "0 台": "0 stations",
+    "明文": "plain text",
+    "数据可能没有": "data may be absent",
+    # ★★ 这两条第一版被漏掉，因为它们出现在【三元表达式】里，
+    #   而我的上下文判据只看 ±6 行里的 API：
+    #     "全国"  —— (st->prov == NET_PROV_NONE) ? "全国" : ...
+    #                所在那行没有 lv_label_set_text，在它【下一行】
+    #     "开不了热点 %.36s" —— snprintf(m,...) 后下一行才是 tap_note(m)
+    #   ⇒ 上下 6 行的窗口不够。判据要扩到「所在语句块」而不是固定行数。
+    "全国": "Nationwide",
+    #★★ 英文比中文长 ⇒ 定长缓冲可能溢出 ★★
+#   ★★ 这是【英文版特有】的系统性风险，中文版结构上不会遇到：
+#     所有错误缓冲区都按中文长度定成固定 `char m[N]`，而同样意思
+#     英文通常长 2~4 倍。编译器用 -Wformat-truncation=Werror 抓得到，
+#     但要等【一小时编译】才发现一处 —— 所以 `_en_snprintf_check.py`
+#     先静态扫全库。
+#   ★ 修法优先级：① 译文改短（不动任何声明，最安全）
+#                   ② 加大缓冲区（要连带看别的使用点）
+#   `开不了热点 %.36s` 5 汉字 16 字节 +36 = 52 < 56 ✓（中文版安全）
+#   `Cannot start hotspot: %.36s` 22 字节 +36 = 58 ≥ 56 ✗（英文版溢出）
+"开不了热点 %.36s": "Hotspot failed: %.36s",
+}
+
+# ═════════════════════════════════════════════ ⑧ 配网页整页（PROV_HTML）
+#★★★ 为什么 captive portal 要【整块】替换而不是逐条翻 ★★★
+#   它是一整块字符串常量，被拆成 27 个相邻字面量；逐条翻译要保证
+#   ① CSS/JS 的引号转义不被破坏 ② 分行拼接位置不变 ③ 字节数不超栈。
+#   只要有一条的译文里出现半角双引号，就会破 HTML —— 而破了的页面
+#   是【白屏】，编译器一个字都不报。
+#   ⇒ 我的做法：整块用英文版原文重写，放进下面这个常量，
+#     生成器识别 `static const char PROV_HTML[] =` 就整块换掉，
+#     并**回读验证**替换后的 HTML 能否解析（引号配平 + 无中文）。
+#   ⚠ 署名保留「永远的兰兰 / Lanlan Eternal」—— 这是作者署名，
+#     不是文案，中文版英文版都要有（发布页里也写着）。
+PROV_HTML_EN = r'''"<!doctype html><html><head><meta charset=utf-8>"
+"<meta name=viewport content=\"width=device-width,initial-scale=1\">"
+"<title>XianDial - WiFi Setup</title><style>"
+"*{box-sizing:border-box}"
+"body{margin:0;background:#0B0E12;color:#F2F5F8;"
+"font:16px/1.6 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;padding:20px}"
+"h1{font-size:20px;color:#34D399;margin:0 0 2px}"
+"p.sub{color:#7C8894;font-size:13px;margin:0 0 18px}"
+"label{display:block;font-size:13px;color:#7C8894;margin:14px 0 6px}"
+"select,input{width:100%;padding:12px;border-radius:8px;border:1px solid #2A323C;"
+"background:#151A21;color:#F2F5F8;font-size:16px}"
+"button{width:100%;margin-top:22px;padding:14px;border:0;border-radius:8px;"
+"background:#34D399;color:#06231A;font-size:17px;font-weight:600}"
+"button:disabled{background:#2A323C;color:#7C8894}"
+"#st{margin-top:16px;font-size:14px;color:#FBBF24;min-height:22px}"
+"#tip{margin-top:24px;font-size:12px;color:#5A6672;line-height:1.7}"
+".hide{display:none}"
+"</style></head><body>"
+"<h1>XianDial</h1><p class=sub>Pick your WiFi and enter the password to connect</p>"
+"<label>WiFi name</label><select id=ss></select>"
+"<div id=man class=hide><label>Enter name manually</label><input id=mss "
+"placeholder=\"e.g. MyNetwork-8f2a\"></div>"
+"<label>Password (leave blank for open networks)</label><input id=pw type=password "
+"autocapitalize=none autocorrect=off>"
+"<button id=go>Connect</button><div id=st></div>"
+"<div id=tip>Once connected this device turns off its own hotspot and remembers "
+"the network, so it will join automatically at every boot."
+"<br>&copy; Lanlan Eternal</div>"
+"<script>"
+"var ss=document.getElementById('ss'),mss=document.getElementById('mss'),"
+"pw=document.getElementById('pw'),go=document.getElementById('go'),"
+"st=document.getElementById('st'),man=document.getElementById('man');"
+"function draw(a){ss.innerHTML='';var o=document.createElement('option');"
+"o.value='';o.textContent='- Select -';ss.appendChild(o);"
+"a.forEach(function(n){var e=document.createElement('option');e.value=n.s;"
+"e.textContent=n.s+'  ('+n.q+')';ss.appendChild(e)});"
+"var m=document.createElement('option');m.value='__manual__';"
+"m.textContent='> Not listed? Enter it manually';ss.appendChild(m)}"
+"function load(){fetch('/ssids').then(function(r){return r.json()})"
+".then(function(j){draw(j.a||[])}).catch(function(){})}"
+"ss.onchange=function(){man.className=(ss.value=='__manual__')?'':'hide'};"
+"go.onclick=function(){var s=(ss.value=='__manual__')?(mss.value.trim()):ss.value;"
+"if(!s){st.textContent='Pick a WiFi first';return}"
+"go.disabled=true;st.textContent='Connecting...';"
+"fetch('/connect',{method:'POST',headers:{'Content-Type':"
+"'application/x-www-form-urlencoded'},"
+"body:'ssid='+encodeURIComponent(s)+'&pass='+encodeURIComponent(pw.value)})"
+".then(function(){poll()}).catch(function(){st.textContent='Submit failed, please retry';"
+"go.disabled=false})};"
+"var t=null;function poll(){if(t)clearTimeout(t);t=setTimeout(function(){"
+"fetch('/state').then(function(r){return r.json()}).then(function(j){"
+"if(j.r==2){st.innerHTML='<b>Connected!</b> You can close this page now';}"
+"else if(j.r==3){st.textContent='Failed: '+(j.m||'wrong password or network not found')+' - check and retry';"
+"go.disabled=false;ss.value='';load();}"
+"else{st.textContent='Connecting...';poll()}})"
+".catch(function(){poll()})},1500)}"
+"ss.onchange();load();"
+"</script></body></html>"'''
+
+# ═════════════════════════════════════════════ ⑨ 网络错误码（NETREASON）
+#   app_sys.c 的 app_net_reason_str() / net_hint_str()：状态页会显示。
+#   ⚠ 这是 wifi reason 枚举 → 文案的映射，【下标必须一一对应】，
+#     少一条会让后面的全部错位 —— 所以生成器要校验条目数。
+NETREASON = {
+    "四次握手超时（多半密码错）": "Handshake timeout (wrong password?)",
+    "信号丢失（beacon 超时）": "Signal lost (beacon timeout)",
+    "找不到这个 WiFi（名字错 / 只开 5G / 太远）":
+        "WiFi not found (wrong name / 5 GHz only / too far)",
+    "密码错误（认证失败）": "Wrong password (auth failed)",
+    "路由器拒绝关联": "Router refused association",
+    "密码错?": "Wrong password?",
+    "为空(开放网络)": "empty (open network)",
+    "(隐藏)": "(hidden)",
+    "信号丢失": "Signal lost",
+    "未知原因": "Unknown reason",
+    "连接中断": "Connection dropped",
+    "握手超时（多半密码错）": "Handshake timeout (wrong password?)",
+    "路由拒绝关联": "Router refused association",
+    "未接电池（USB 供电）": "No battery (USB power)",
+}
+
+# ═════════════════════════════════════════════ ⑦ 串口日志白名单
+#    ★ 这些串只进 ESP_LOG* / printf，使用者界面【看不到】。
+#      留着中文有三个好处：① 省 flash ② 排障时读中文快
+#      ③ 闸门不必为它们准备译文（省 200多条维护）。
+#    登记在册的好处：闸门能【区分】「日志里留中文」与「界面漏了中文」。
+LOG_ONLY = {
+    "home: 网格还没建 —— 先建再填台",
+    "find: 网格还没建 —— 先建再填台",
+    "list: 第6 页网格还没建 —— 先建再填台",
+    "ovs: 第 6 页网格还没建（未进过该页）—— 先建再填地区",
+    "grid: 第 %d 页网格已删（池已还回）",
+    "grid: 第 %d 页网格已建，池 free=%u B（used %u%%）",
+    "home grid: %d 格（收藏 %d + 历史 %d + 其余补满）",
+    "★★ 建完第 %d 页网格后池只剩 %u B ——",
+    "重绘时极可能 lv_malloc 返 NULL 而崩溃",
+    "★★ LVGL 池危险！free=%u B（<10 KB）—— 立刻要减 lv_obj，",
+    "再加 UI 必崩（EXCVADDR=0x08 @ lv_draw_add_task）",
+    "★ LVGL 池偏紧 free=%u B（<16 KB）—— 加 UI 前先减对象",
+    "UI: 二次确认通过 → 关机",
+    "station_step(%d) 失败",
+    "pw_btn: 池满，建不出按钮",
+    "wifi 页按钮没建全（池满）",
+    "开不了热点 %.36s",
+}
+# ★ 上面 LOG_ONLY 里那两条里，有一条其实【要上屏】——
+#   「list: 第 6 页网格还没建」虽然带 list: 前缀，看着像日志，
+#   但它是 tap_note() 的实参，会显示给用户。
+#   ⇒ 我第一版按「前缀像日志」归进 LOG_ONLY，界面就会留一句中文。
+#   ⇒ 教训：★ 不要凭「长得像日志」判断，按【调用点】判断。
+#     这两条的判据是它在源码里进的是 tap_note()/label() 还是 ESP_LOG。
+#   真正的日志（grid:/home: /★ LVGL 池…）都进了 ESP_LOGi/LOGw，
+#   使用者看不到，保留中文是有利的（排障时读中文更快）。
 
 # ═════════════════════════════════════════════ ⑥ 合并与自检
 ALL = {}
-for d in (UI, PLAY, LIST, SYS, TOAST):
+for d in (UI, PLAY, LIST, SYS, TOAST, ERRSET, NETREASON):
     for k, v in d.items():
         if k in ALL and ALL[k] != v:
             raise SystemExit(
