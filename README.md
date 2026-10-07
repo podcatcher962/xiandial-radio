@@ -3,6 +3,8 @@
 **一台不塞台源的 ESP32-S3 网络收音机固件。台源由你自己带进来。**
 
 > 🌐 **English version: [README.en.md](README.en.md)** · 烧录步骤 / Flashing: [FLASHING.md](FLASHING.md)
+>
+> **English-interface firmware**（英文界面固件）在另一个仓库：[**xiandial-radio-en**](https://github.com/podcatcher962/xiandial-radio-en) —— 同一套引擎、界面英文、同样 0 条内置台单。
 
 让「听广播」回到本来的样子：开机、选台、出声。没有账号、没有推荐算法、没有开屏广告。
 
